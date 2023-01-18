@@ -1,0 +1,7 @@
+{
+	"appenders":[
+		{"type":"console"},
+		{"type":"file","filename":"./logs/error.log","category":"error"},
+        {"type":"file","filename":"./logs/i18n.log","category":"i18n"}
+	]
+}

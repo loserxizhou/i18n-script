@@ -4,6 +4,8 @@ const readline = require('readline');
 const { addLog } = require('./log/serverLog');
 const cheerio = require('cheerio');
 
+const addI18nModule = require('./addI18nModule')
+
 //解析需要遍历的文件夹
 var filePath = path.resolve('D:/E-office_Server/www/eoffice10_dev/client/web/src/app');
 
@@ -66,11 +68,11 @@ function readLine(url, filename) {
         fileStr = customTagTrans(fileStr);
         // 给单独的trans管道的文本添加span标签
         fileStr = handleTrans(fileStr);
-        // 给带有trans管道的文本节点 添加 i18n 属性
+        // 给带有trans管道的文本节点 添加 eui-i18n-text指令
         fileStr = setI18n(fileStr, (line) => {
             addLog(`${url}  line: ${line} add i18n`, 'i18n');
         })
-        // 给带有euiTooltip或[euiTooltip]的标签 添加 i18n-title 属性
+        //给带有euiTooltip或[euiTooltip]的标签 中的文本设置为key的形式
         fileStr = setI18nByEuiTooltip(fileStr, (line) => {
             addLog(`${url}  line: ${line} add i18n-title by euiTooltip`, 'i18n');
         });
@@ -190,12 +192,19 @@ function setI18n(str, logCallback) {
             }
             transIdList = [...transIdList ,...idList];
         })
-        const transIdString = transIdList.join(',');
+        if(transIdList.length > 1) {
+            // 为了标准化 只处理带一个trans管道的文本 后面带多个的手动去和为一个
+            return
+        }
+        const transIdString = transIdList[0];
         // 修改的位置（行数）
         const changeLines = fileStr.split(node)[0].split('\n').length
         // 通过dom对象设置属性
-        $("*").attr('e-i18n-text', transIdString);
-        $("*").addClass('i18n');
+        // $("*").attr('e-i18n-text', transIdString);
+        // $("*").addClass('i18n');
+        // 给对象加上指令 eui-i18n-text 并删除对象的文本内容
+        $("*").attr('euiI18nText', transIdString)
+        $("*").text('')
         const newNode = specialCharAfter(getXMLtext($.xml()));
         fileStr = fileStr.replace(node, newNode);
         logCallback(changeLines);
@@ -223,9 +232,10 @@ function setI18nByEuiTooltip(str, logCallback) {
         // 修改的位置（行数）
         const changeLines = str.split(outerHtml)[0].split('\n').length;
         const idList = transText.match(/[\w\.\s]+(?=(('|")\s*\|\s*trans))/g);
-        if(idList) {
-            $(this).attr('e-i18n-title', idList.join(','));
-            $(this).addClass('i18n');
+        if(idList && idList.length == 1) {
+            // $(this).attr('e-i18n-title', idList.join(','));
+            // $(this).addClass('i18n');
+            $(this).attr('euiTooltip', idList[0])
             logCallback(changeLines);
         }
     })
@@ -235,9 +245,11 @@ function setI18nByEuiTooltip(str, logCallback) {
         // 修改的位置（行数）
         const changeLines = str.split(outerHtml)[0].split('\n').length;
         const idList = transText.match(/[\w\.\s]+(?=(('|")\s*\|\s*trans))/g);
-        if(idList) {
-            $(this).attr('e-i18n-title', idList.join(','));
-            $(this).addClass('i18n');
+        if(idList && idList.length == 1) {
+            // $(this).attr('e-i18n-title', idList.join(','));
+            // $(this).addClass('i18n');
+            $(this).removeAttr('[euiTooltip]')
+            $(this).attr('euiTooltip', idList[0])
             logCallback(changeLines);
         }
     });
@@ -266,9 +278,11 @@ function setI18nByTitle(str, logCallback) {
         // 修改的位置（行数）
         const changeLines = str.split(outerHtml)[0].split('\n').length;
         const idList = transText.match(/[\w\.\s]+(?=(('|")\s*\|\s*trans))/g);
-        if(idList) {
-            $(this).attr('e-i18n-title', idList.join(','));
-            $(this).addClass('i18n');
+        if(idList && idList.length == 1) {
+            // $(this).attr('e-i18n-title', idList.join(','));
+            // $(this).addClass('i18n');
+            $(this).removeAttr('title')
+            $(this).attr('euiI18nTitle', idList[0]);
             logCallback(changeLines);
         }
     })
@@ -278,9 +292,11 @@ function setI18nByTitle(str, logCallback) {
         // 修改的位置（行数）
         const changeLines = str.split(outerHtml)[0].split('\n').length;
         const idList = transText.match(/[\w\.\s]+(?=(('|")\s*\|\s*trans))/g);
-        if(idList) {
-            $(this).attr('e-i18n-title', idList.join(','));
-            $(this).addClass('i18n');
+        if(idList && idList.length == 1) {
+            // $(this).attr('e-i18n-title', idList.join(','));
+            // $(this).addClass('i18n');
+            $(this).removeAttr('[title]')
+            $(this).attr('eui-i18n-title', idList[0]);
             logCallback(changeLines);
         }
     });
@@ -353,6 +369,7 @@ function read(filePath) {
     if(stat.isDirectory()) {
         fileDisplay(filePath);
     }
+    addI18nModule.read(insertPath)
 }
 
 read(filePath)

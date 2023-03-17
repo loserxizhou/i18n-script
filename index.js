@@ -114,7 +114,7 @@ function customTagTrans(str) {
             const regText = /{{([^}}]+)?\|\s*trans\s*}}/g;
             $.text().match(regText)?.forEach(item => {
                 const repStr = specialCharBefore(`<span>${item}</span>`);
-                const repReg = new RegExp('(?<!")' + item.replace('|', "\\|").replace(/\./g, '\\.') + '(?!")', 'g')
+                const repReg = new RegExp('(?<!"|<span>)' + item.replace('|', "\\|").replace(/\./g, '\\.') + '(?!")', 'g')
                 str = str.replace(repReg, repStr);
             });
         }
@@ -142,7 +142,7 @@ function handleTrans(str) {
                 const regText = /{{([^(}})]+)?trans\s*}}/g;
                 childText.match(regText)?.forEach(item => {
                     const repStr = `<span>${item}</span>`
-                    const repReg = new RegExp( item.replace('|', "\\|"), 'g')
+                    const repReg = new RegExp( '(?<!("|<span>))' + item.replace('|', "\\|").replace(/\./g, '\\.') + '(?!")', 'g')
                     if(replaceList.findIndex(re => re == item) == -1) {
                         replaceList.push(item);
                         str = str.replace(repReg, repStr);

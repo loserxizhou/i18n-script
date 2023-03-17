@@ -28,7 +28,7 @@ var filePath = path.resolve('D:/E-office_Server/www/eoffice10_dev/client/web/src
                         var isFile = stats.isFile();//是文件
                         var isDir = stats.isDirectory();//是文件夹
                         if(isFile){
-                            if(filedir.indexOf('module.ts') !== -1) {
+                            if(filedir.indexOf('module.ts') !== -1 && filedir.indexOf('modal.module.ts') == -1) {
                                 readLine(filedir, filename)
                             }
                         }
